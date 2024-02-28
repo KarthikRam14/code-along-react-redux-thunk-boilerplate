@@ -1,46 +1,40 @@
-import React, { useState } from 'react';
-import { applyMiddleware, createStore } from 'redux';
-import reducer from './Reducers';
-import { fetchUserData, showError } from './Actions';
-import axios from 'axios';
-import thunk  from 'redux-thunk';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchData } from './Store.jsx';
 
+function Counter() {
+  const dispatch = useDispatch();
+  const users = useSelector((i) => i.user);
+  const [showData, setShowData] = useState(false);
 
-const store = createStore(reducer,applyMiddleware(thunk))
+  useEffect(() => {
+    if (showData) {
+      dispatch(fetchData());
+    }
+  }, [dispatch, showData]);
 
-function fetchData(){
-  return function(){
-    axios.get("https://jsonplaceholder.typicode.com/users")
-    .then(res=>{
-      const users = res.data;
-      store.dispatch(fetchUserData(users))
-    })
-    .catch(error=>{
-      store.dispatch(showError(error.message))
-    })
-}}
-
-
-export default function Counter() {
-
-  const [data, setData] = useState([]);
-
-  const unsubscribe = store.subscribe(()=>{
-    setData(store.getState().users)
-  })  
+  const show = () => {
+    setShowData(true);
+  };
 
   return (
     <div>
-      {data.map(item=>{
-        return <div key={item.id}>
-          <div>
-            <h3>{item.name}</h3>
-            <h4>{item.email}</h4>
-          </div>
-          <hr></hr>
+      {showData && (
+        <div>
+          {users.map((item) => (
+            <div key={item.id}>
+              <div>
+                <h3>{item.name}</h3>
+                <h4>{item.email}</h4>
+              </div>
+              <hr></hr>
+            </div>
+          ))}
         </div>
-      })}
-      <button onClick={() => store.dispatch(fetchData())}>Fetch Data</button>
-  </div>
-  )
+      )}
+      <button onClick={show}>Fetch Data</button>
+    </div>
+  );
 }
+
+export default Counter;
